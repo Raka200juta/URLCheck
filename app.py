@@ -150,11 +150,13 @@ db = init_firebase()
 # 4. KONFIGURASI API KEY (dari secrets / input manual)
 # ─────────────────────────────────────────
 def get_vt_api_key() -> str:
-    """Ambil API key dari st.secrets atau session state."""
+    """Ambil API key dengan prioritas: input manual sidebar, baru dari st.secrets."""
+    if st.session_state.get("vt_api_key"):
+        return st.session_state["vt_api_key"]
     try:
         return st.secrets["VT_API_KEY"]
     except Exception:
-        return st.session_state.get("vt_api_key", "")
+        return ""
 
 # ─────────────────────────────────────────
 # 5. VALIDASI URL
@@ -354,15 +356,23 @@ def fetch_history(limit: int = 20) -> list[dict]:
 # ─────────────────────────────────────────
 # 11. SIDEBAR
 # ─────────────────────────────────────────
-with st.sidebar:
-    st.markdown("### ⚙️ Konfigurasi")
+default_key = ""
+try:
+    default_key = st.secrets["VT_API_KEY"]
+except Exception:
+    pass
 
+# Tempatkan text input di dalam container sidebar resmi Streamlit
+with st.sidebar:
+    st.header("⚙️ Konfigurasi")
     vt_key_input = st.text_input(
         "VirusTotal API Key",
-        value=st.session_state.get("vt_api_key", ""),
+        value=st.session_state.get("vt_api_key", default_key),
         type="password",
         help="Dapatkan API key gratis di https://www.virustotal.com",
     )
+    
+    # Simpan ke session state jika user mengetik manual
     if vt_key_input:
         st.session_state["vt_api_key"] = vt_key_input
 
