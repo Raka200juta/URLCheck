@@ -125,11 +125,21 @@ st.markdown("""
 # ─────────────────────────────────────────
 @st.cache_resource
 def init_firebase():
-    """Inisialisasi Firebase sekali saja; kembalikan None jika file kunci tidak ada."""
+    """Inisialisasi Firebase sekali saja; mendukung lokal file atau Cloud Secrets."""
     try:
         if not firebase_admin._apps:
-            cred = credentials.Certificate("firebase_key.json")
-            firebase_admin.initialize_app(cred)
+            # Jika berjalan di Cloud Streamlit (menggunakan Secrets)
+            if "firebase" in st.secrets:
+                fb_creds = dict(st.secrets["firebase"])
+                # Handle ganti baris pada private key jika diperlukan
+                if "private_key" in fb_creds:
+                    fb_creds["private_key"] = fb_creds["private_key"].replace("\\n", "\n")
+                cred = credentials.Certificate(fb_creds)
+                firebase_admin.initialize_app(cred)
+            # Jika berjalan di localhost (menggunakan file json lokal)
+            else:
+                cred = credentials.Certificate("firebase_key.json")
+                firebase_admin.initialize_app(cred)
         return firestore.client()
     except Exception as e:
         return None

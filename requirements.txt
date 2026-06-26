@@ -1,0 +1,4 @@
+streamlit
+firebase_admin
+requests
+fpdf2
