@@ -2,3 +2,4 @@ streamlit
 firebase_admin
 requests
 fpdf2
+reportlab
